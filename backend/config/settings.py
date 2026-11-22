@@ -4,7 +4,9 @@ from datetime import timedelta
 import dj_database_url
 BASE_DIR=Path(__file__).resolve().parent.parent
 SECRET_KEY=os.environ.get("SECRET_KEY","unsafe-local-dev-only")
-DEBUG=os.environ.get("DEBUG","false").lower()=="true"\nif not DEBUG and SECRET_KEY=="unsafe-local-dev-only":\n raise RuntimeError("Set SECRET_KEY in production")
+DEBUG=os.environ.get("DEBUG","false").lower()=="true"
+if not DEBUG and SECRET_KEY=="unsafe-local-dev-only":
+ raise RuntimeError("Set SECRET_KEY in production")
 ALLOWED_HOSTS=os.environ.get("ALLOWED_HOSTS","localhost,127.0.0.1").split(",")
 INSTALLED_APPS=["django.contrib.admin","django.contrib.auth","django.contrib.contenttypes","django.contrib.sessions","django.contrib.messages","django.contrib.staticfiles","rest_framework","django_filters","drf_spectacular","corsheaders","accounts","tickets"]
 MIDDLEWARE=["django.middleware.security.SecurityMiddleware","whitenoise.middleware.WhiteNoiseMiddleware","corsheaders.middleware.CorsMiddleware","django.contrib.sessions.middleware.SessionMiddleware","django.middleware.common.CommonMiddleware","django.middleware.csrf.CsrfViewMiddleware","django.contrib.auth.middleware.AuthenticationMiddleware","django.contrib.messages.middleware.MessageMiddleware","django.middleware.clickjacking.XFrameOptionsMiddleware"]
@@ -23,4 +25,8 @@ REST_FRAMEWORK={"DEFAULT_AUTHENTICATION_CLASSES":["rest_framework_simplejwt.auth
 SIMPLE_JWT={"ACCESS_TOKEN_LIFETIME":timedelta(minutes=30),"REFRESH_TOKEN_LIFETIME":timedelta(days=7)}
 SPECTACULAR_SETTINGS={"TITLE":"SupportDesk API","VERSION":"1.0","DESCRIPTION":"WEPRO diploma"}
 CORS_ALLOWED_ORIGINS=[x for x in os.environ.get("CORS_ALLOWED_ORIGINS","http://localhost:5173").split(",") if x]
-SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO","https")\nSESSION_COOKIE_SECURE=not DEBUG\nCSRF_COOKIE_SECURE=not DEBUG\nSECURE_CONTENT_TYPE_NOSNIFF=True\nX_FRAME_OPTIONS="DENY"
+SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO","https")
+SESSION_COOKIE_SECURE=not DEBUG
+CSRF_COOKIE_SECURE=not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF=True
+X_FRAME_OPTIONS="DENY"
