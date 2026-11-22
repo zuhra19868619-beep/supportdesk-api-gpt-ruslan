@@ -26,3 +26,33 @@ class TicketSecurityTests(APITestCase):
   self.ticket.status="in_progress"
   self.ticket.save()
   self.assertEqual(self.client.delete(f"/api/tickets/{self.ticket.id}/").status_code,403)
+
+
+class AuthenticationFlowTests(APITestCase):
+ def test_register_login_refresh_and_me(self):
+  response=self.client.post("/api/auth/register/",{"username":"new_customer","email":"customer@example.com","password":"strongpass123"},format="json")
+  self.assertEqual(response.status_code,201,response.data)
+  response=self.client.post("/api/auth/token/",{"username":"new_customer","password":"strongpass123"},format="json")
+  self.assertEqual(response.status_code,200,response.data)
+  self.assertIn("access",response.data)
+  self.assertIn("refresh",response.data)
+  refreshed=self.client.post("/api/auth/token/refresh/",{"refresh":response.data["refresh"]},format="json")
+  self.assertEqual(refreshed.status_code,200,refreshed.data)
+  self.client.credentials(HTTP_AUTHORIZATION="Bearer "+refreshed.data["access"])
+  me=self.client.get("/api/auth/me/")
+  self.assertEqual(me.status_code,200,me.data)
+  self.assertEqual(me.data["username"],"new_customer")
+  self.assertFalse(me.data["is_manager"])
+ def test_manager_role_is_server_controlled(self):
+  manager=User.objects.create_user(username="support_manager",password="strongpass123",is_staff=True)
+  response=self.client.post("/api/auth/token/",{"username":"support_manager","password":"strongpass123"},format="json")
+  self.assertEqual(response.status_code,200,response.data)
+  self.client.credentials(HTTP_AUTHORIZATION="Bearer "+response.data["access"])
+  me=self.client.get("/api/auth/me/")
+  self.assertTrue(me.data["is_manager"])
+ def test_wrong_password_rejected(self):
+  User.objects.create_user(username="customer",password="strongpass123")
+  response=self.client.post("/api/auth/token/",{"username":"customer","password":"wrongpass"},format="json")
+  self.assertEqual(response.status_code,401)
+ def test_unauthenticated_tickets_rejected(self):
+  self.assertEqual(self.client.get("/api/tickets/").status_code,401)
