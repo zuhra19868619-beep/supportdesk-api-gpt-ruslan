@@ -4,5 +4,5 @@ WORKDIR /app
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ /app/
-RUN python manage.py collectstatic --noinput
+RUN SECRET_KEY=temporary-build-only-key python manage.py collectstatic --noinput
 CMD ["sh","-c","python manage.py migrate --noinput && python manage.py seed_categories && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
